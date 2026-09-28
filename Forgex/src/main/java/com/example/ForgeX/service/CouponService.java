@@ -32,32 +32,32 @@ public class CouponService {
         }
         String code = rawCode.trim().toUpperCase();
 
-        Coupon c = couponRepository.findByCodeIgnoreCase(code).orElse(null);
+        Coupon coupon = couponRepository.findByCodeIgnoreCase(code).orElse(null);
         LocalDateTime now = LocalDateTime.now();
 
-        if (c == null || !Boolean.TRUE.equals(c.getActive()))
+        if (coupon == null || !Boolean.TRUE.equals(coupon.getActive()))
             return CouponResult.none("Invalid coupon code");
-        if (c.getValidFrom() != null && now.isBefore(c.getValidFrom()))
+        if (coupon.getValidFrom() != null && now.isBefore(coupon.getValidFrom()))
             return CouponResult.none("This coupon is not active yet");
-        if (c.getValidTo() != null && now.isAfter(c.getValidTo()))
+        if (coupon.getValidTo() != null && now.isAfter(coupon.getValidTo()))
             return CouponResult.none("This coupon has expired");
-        if (c.getUsageLimit() != null && c.getUsedCount() >= c.getUsageLimit())
+        if (coupon.getUsageLimit() != null && coupon.getUsedCount() >= coupon.getUsageLimit())
             return CouponResult.none("This coupon has reached its usage limit");
-        if (c.getMinOrderPaise() != null && subtotal < c.getMinOrderPaise())
-            return CouponResult.none("Add ₹" + (c.getMinOrderPaise() - subtotal) / 100 + " more to use this coupon");
+        if (coupon.getMinOrderPaise() != null && subtotal < coupon.getMinOrderPaise())
+            return CouponResult.none("Add ₹" + (coupon.getMinOrderPaise() - subtotal) / 100 + " more to use this coupon");
 
         long discount;
-        if (c.getType() == DiscountType.PERCENT) {
-            discount = subtotal * c.getValue() / 100;
-            if (c.getMaxDiscountPaise() != null) {
-                discount = Math.min(discount, c.getMaxDiscountPaise());
+        if (coupon.getType() == DiscountType.PERCENT) {
+            discount = subtotal * coupon.getValue() / 100;
+            if (coupon.getMaxDiscountPaise() != null) {
+                discount = Math.min(discount, coupon.getMaxDiscountPaise());
             }
         } else {
-            discount = c.getValue();
+            discount = coupon.getValue();
         }
         discount = Math.min(discount, subtotal);    // never below zero
 
-        return new CouponResult(discount, c.getCode(), "Applied");
+        return new CouponResult(discount, coupon.getCode(), "Applied");
     }
 
     
@@ -78,18 +78,18 @@ public class CouponService {
 
     @Transactional
     public CouponDTO update(Long id, CouponDTO dto) {
-        Coupon c = couponRepository.findById(id)
+        Coupon coupon = couponRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Coupon", "couponId", id));
         validateRules(dto);
-        c.setType(dto.getType());
-        c.setValue(dto.getValue());
-        c.setMinOrderPaise(dto.getMinOrderPaise());
-        c.setMaxDiscountPaise(dto.getMaxDiscountPaise());
-        c.setUsageLimit(dto.getUsageLimit());
-        c.setValidFrom(dto.getValidFrom());
-        c.setValidTo(dto.getValidTo());
-        if (dto.getActive() != null) c.setActive(dto.getActive());
-        return modelMapper.map(c, CouponDTO.class);
+        coupon.setType(dto.getType());
+        coupon.setValue(dto.getValue());
+        coupon.setMinOrderPaise(dto.getMinOrderPaise());
+        coupon.setMaxDiscountPaise(dto.getMaxDiscountPaise());
+        coupon.setUsageLimit(dto.getUsageLimit());
+        coupon.setValidFrom(dto.getValidFrom());
+        coupon.setValidTo(dto.getValidTo());
+        if (dto.getActive() != null) coupon.setActive(dto.getActive());
+        return modelMapper.map(coupon, CouponDTO.class);
     }
 
     public List<CouponDTO> findAll() {

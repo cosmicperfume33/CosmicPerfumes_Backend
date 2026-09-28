@@ -30,7 +30,7 @@ public class CartServiceImpl implements CartService {
     @Autowired private AuthUtil authUtil;
     @Autowired private ModelMapper modelMapper;
 
-    // ---------- Add ----------
+   
 
     @Override
     public CartDTO addProductToCart(Long productId, Integer quantity) {
@@ -57,9 +57,7 @@ public class CartServiceImpl implements CartService {
         return save(cart);
     }
 
-    // ---------- Read ----------
-
-    /** cartId is ignored: the cart always comes from the logged-in user's email. */
+   
     @Override
     public CartDTO getCart(String emailId, Long cartId) {
         Cart cart = cartRepository.findCartByEmail(emailId);
@@ -75,17 +73,17 @@ public class CartServiceImpl implements CartService {
         return cartRepository.findAll().stream().map(this::toDTO).toList();
     }
 
-    // ---------- Update quantity (+1 / -1) ----------
+   
 
     @Override
-    public CartDTO updateProductQuantityInCart(Long productId, Integer delta) {
+    public CartDTO updateProductQuantityInCart(Long productId, Integer quantity) {
         Cart cart = getOrCreateCart(authUtil.loggedInUser());
         CartItem item = findItem(cart, productId);
         if (item == null) {
             throw new ResourceNotFoundException("Product in cart", "productId", productId);
         }
 
-        int newQty = item.getQuantity() + delta;
+        int newQty = item.getQuantity() + quantity;
         if (newQty <= 0) {
             cart.getCartItems().remove(item);          // orphanRemoval deletes the row
         } else {
@@ -96,7 +94,7 @@ public class CartServiceImpl implements CartService {
         return save(cart);
     }
 
-    // ---------- Remove ----------
+   
 
     @Override
     public String deleteProductFromCart(Long cartId, Long productId) {
@@ -132,7 +130,7 @@ public class CartServiceImpl implements CartService {
         }
     }
 
-    // ---------- Helpers ----------
+   
 
     private Cart getOrCreateCart(User user) {
         Cart cart = cartRepository.findCartByEmail(user.getEmail());

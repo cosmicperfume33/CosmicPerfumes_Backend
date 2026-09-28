@@ -35,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderDTO> getMyOrders(String email) {
         return orderRepository.findByEmailOrderByCreatedAtDesc(email).stream()
-                .map(this::toDTO)
+                .map(this::orderDTO)
                 .toList();
     }
 
@@ -43,16 +43,16 @@ public class OrderServiceImpl implements OrderService {
     public OrderDTO getMyOrder(String email, Long orderId) {
         Order order = find(orderId);
         if (!order.getEmail().equals(email)) {
-            // Same message as "not found" so users can't probe other people's order ids
+          
             throw new ResourceNotFoundException("Order", "orderId", orderId);
         }
-        return toDTO(order);
+        return orderDTO(order);
     }
 
     @Override
     public List<OrderDTO> getAllOrders() {
         return orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt")).stream()
-                .map(this::toDTO)
+                .map(this::orderDTO)
                 .toList();
     }
 
@@ -66,7 +66,7 @@ public class OrderServiceImpl implements OrderService {
             throw new APIException("Cannot move order from " + order.getStatus() + " to " + newStatus);
         }
         order.setStatus(newStatus);
-        return toDTO(order);
+        return orderDTO(order);
     }
 
   
@@ -76,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
     }
 
-    private OrderDTO toDTO(Order order) {
+    private OrderDTO orderDTO(Order order) {
         OrderDTO dto = new OrderDTO();
         dto.setOrderId(order.getOrderId());
         dto.setEmail(order.getEmail());
@@ -87,6 +87,7 @@ public class OrderServiceImpl implements OrderService {
         dto.setDiscount(order.getDiscount());
         dto.setShipping(order.getShipping());
         dto.setTotal(order.getTotal());
+        dto.setOrderNumber(order.getOrderNumber());
         dto.setCouponCode(order.getCouponCode());
         dto.setAddressId(order.getAddress() != null ? order.getAddress().getAddressId() : null);
         dto.setCreatedAt(order.getCreatedAt());

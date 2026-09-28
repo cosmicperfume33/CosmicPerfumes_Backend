@@ -19,6 +19,7 @@ public class OrderDTO {
 
     private Long orderId;
     private String email;
+    private String orderNumber;
 
     private OrderStatus status;
     private PaymentMethod paymentMethod;

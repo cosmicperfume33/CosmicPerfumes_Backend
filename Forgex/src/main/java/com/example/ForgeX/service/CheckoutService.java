@@ -1,8 +1,10 @@
 package com.example.ForgeX.service;
 
 import java.time.LocalDateTime;
+import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -30,26 +32,38 @@ public class CheckoutService {
 
     private static final Logger log = LoggerFactory.getLogger(CheckoutService.class);
 
-    @Autowired private CartRepository cartRepository;
-    @Autowired private AddressRepository addressRepository;
-    @Autowired private OrderRepository orderRepository;
-    @Autowired private ProductRepository productRepository;
-    @Autowired private CouponRepository couponRepository;
-    @Autowired private CouponService couponService;
-    @Autowired private RazorpayClient razorpayClient;
+    @Autowired
+    private CartRepository cartRepository;
+    @Autowired
+    private AddressRepository addressRepository;
+    @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
+    private ProductRepository productRepository;
+    @Autowired
+    private CouponRepository couponRepository;
+    @Autowired
+    private CouponService couponService;
+    @Autowired
+    private RazorpayClient razorpayClient;
 
-    @Value("${razorpay.key.id}")         private String keyId;
-    @Value("${razorpay.key.secret}")     private String keySecret;
-    @Value("${razorpay.webhook.secret}") private String webhookSecret;
-    @Value("${razorpay.currency}")       private String currency;
+    @Value("${razorpay.key.id}")
+    private String keyId;
+    @Value("${razorpay.key.secret}")
+    private String keySecret;
+    @Value("${razorpay.webhook.secret}")
+    private String webhookSecret;
+    @Value("${razorpay.currency}")
+    private String currency;
 
-    @Value("${shop.shipping.free-above-paise}") private long freeShippingAbove;
-    @Value("${shop.shipping.charge-paise}")     private long shippingCharge;
-    @Value("${shop.payment.expiry-minutes}")    private long expiryMinutes;
+    @Value("${shop.shipping.free-above-paise}")
+    private long freeShippingAbove;
+    @Value("${shop.shipping.charge-paise}")
+    private long shippingCharge;
+    @Value("${shop.payment.expiry-minutes}")
+    private long expiryMinutes;
 
-    // =====================================================================
     // 1. PREVIEW — price breakdown for the cart page ("Apply coupon" button)
-    // =====================================================================
 
     @Transactional(readOnly = true)
     public PriceBreakdown preview(User user, String couponCode) {
@@ -57,15 +71,14 @@ public class CheckoutService {
         return calculate(cart.getCartItems(), couponCode);
     }
 
-    // =====================================================================
     // 2. CHECKOUT — create order, reserve stock, create Razorpay order
-    // =====================================================================
 
     @Transactional
     public CheckoutResponse checkout(User user, CheckoutRequest req) {
         Cart cart = loadCart(user.getEmail());
         List<CartItem> items = new ArrayList<>(cart.getCartItems());
-        if (items.isEmpty()) throw new APIException("Your cart is empty");
+        if (items.isEmpty())
+            throw new APIException("Your cart is empty");
 
         Address address = addressRepository.findById(req.getAddressId())
                 .orElseThrow(() -> new ResourceNotFoundException("Address", "addressId", req.getAddressId()));
@@ -75,10 +88,9 @@ public class CheckoutService {
 
         PriceBreakdown price = calculate(items, req.getCouponCode());
         if (req.getCouponCode() != null && !req.getCouponCode().isBlank() && price.getCouponCode() == null) {
-            throw new APIException(price.getCouponMessage());   // don't silently drop a coupon they typed
+            throw new APIException(price.getCouponMessage()); // don't silently drop a coupon they typed
         }
 
-        // Build the order
         Order order = new Order();
         order.setEmail(user.getEmail());
         order.setAddress(address);
@@ -88,6 +100,7 @@ public class CheckoutService {
         order.setShipping(price.getShipping());
         order.setTotal(price.getTotal());
         order.setCouponCode(price.getCouponCode());
+        order.setOrderNumber(getOrderNumber());
 
         for (CartItem ci : items) {
             Product p = ci.getProduct();
@@ -100,15 +113,16 @@ public class CheckoutService {
                 throw new APIException("Only " + p.getStock() + " left of " + p.getName());
             }
 
-            OrderItem oi = new OrderItem();
-            oi.setProduct(p);
-            oi.setProductName(p.getName());
-            oi.setQuantity(ci.getQuantity());
-            oi.setUnitPrice(p.getPrice());
-            oi.setMrp(p.getMrp());
-            oi.setLineTotal(p.getPrice() * ci.getQuantity());
-            order.addItem(oi);
+            OrderItem orderItem = new OrderItem();
+            orderItem.setProduct(p);
+            orderItem.setProductName(p.getName());
+            orderItem.setQuantity(ci.getQuantity());
+            orderItem.setUnitPrice(p.getPrice());
+            orderItem.setMrp(p.getMrp());
+            orderItem.setLineTotal(p.getPrice() * ci.getQuantity());
+            order.addItem(orderItem);
         }
+        System.out.println(order.getOrderNumber());
 
         Payment payment = new Payment();
         payment.setMethod(req.getPaymentMethod());
@@ -128,7 +142,7 @@ public class CheckoutService {
         } else {
             order.setStatus(OrderStatus.PENDING_PAYMENT);
             payment.setStatus(PaymentStatus.CREATED);
-            order = orderRepository.save(order);       // need the id for the receipt
+            order = orderRepository.save(order); // need the id for the receipt
 
             String rzpOrderId = createRazorpayOrder(order);
             order.setRazorpayOrderId(rzpOrderId);
@@ -146,10 +160,6 @@ public class CheckoutService {
         res.setStatus(order.getStatus());
         return res;
     }
-
-    // =====================================================================
-    // 3. VERIFY — called by frontend after Razorpay Checkout succeeds
-    // =====================================================================
 
     @Transactional
     public CheckoutResponse verify(User user, PaymentVerifyRequest req) {
@@ -172,10 +182,6 @@ public class CheckoutService {
         return res;
     }
 
-    // =====================================================================
-    // 4. WEBHOOK — Razorpay calls this directly (source of truth)
-    // =====================================================================
-
     @Transactional
     public void handleWebhook(String payload, String signature) {
         try {
@@ -190,13 +196,14 @@ public class CheckoutService {
         String type = event.getString("event");
 
         if (!type.equals("payment.captured") && !type.equals("payment.failed")) {
-            return;   // ignore other events
+            return; // ignore other events
         }
 
         JSONObject pay = event.getJSONObject("payload").getJSONObject("payment").getJSONObject("entity");
         String rzpOrderId = pay.optString("order_id", null);
         String rzpPaymentId = pay.getString("id");
-        if (rzpOrderId == null) return;
+        if (rzpOrderId == null)
+            return;
 
         Order order = orderRepository.findByRazorpayOrderIdForUpdate(rzpOrderId).orElse(null);
         if (order == null) {
@@ -211,11 +218,7 @@ public class CheckoutService {
         }
     }
 
-    // =====================================================================
-    // 5. EXPIRY — cancel unpaid orders and return their stock
-    // =====================================================================
-
-    @Scheduled(fixedDelay = 5 * 60 * 1000)   // every 5 minutes
+    @Scheduled(fixedDelay = 5 * 60 * 1000) // every 5 minutes
     @Transactional
     public void expireUnpaidOrders() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(expiryMinutes);
@@ -230,16 +233,11 @@ public class CheckoutService {
         }
     }
 
-    // =====================================================================
-    // Internal helpers
-    // =====================================================================
-
-    /** Idempotent: safe to call from both verify and webhook. */
     private void markPaid(Order order, String rzpPaymentId, String signature) {
         Payment payment = order.getPayment();
 
         if (order.getStatus() == OrderStatus.PAID) {
-            return;                                           // already done
+            return;
         }
 
         if (order.getStatus() == OrderStatus.CANCELLED) {
@@ -258,16 +256,17 @@ public class CheckoutService {
         order.setPaidAt(LocalDateTime.now());
         payment.setStatus(PaymentStatus.CAPTURED);
         payment.setRazorpayPaymentId(rzpPaymentId);
-        if (signature != null) payment.setRazorpaySignature(signature);
+        if (signature != null)
+            payment.setRazorpaySignature(signature);
 
         Cart cart = cartRepository.findCartByEmail(order.getEmail());
         redeemCouponAndClearCart(order, cart);
     }
 
     private void markFailed(Order order, String reason) {
-        if (order.getStatus() != OrderStatus.PENDING_PAYMENT) return;
-        // Keep the order PENDING — the customer can retry in the same Checkout window.
-        // The expiry job cancels it and releases stock if they never succeed.
+        if (order.getStatus() != OrderStatus.PENDING_PAYMENT)
+            return;
+
         order.getPayment().setFailureReason(reason);
     }
 
@@ -292,7 +291,7 @@ public class CheckoutService {
             couponRepository.incrementUsage(order.getCouponCode());
         }
         if (cart != null) {
-            cart.getCartItems().clear();          // needs orphanRemoval = true on Cart.cartItems
+            cart.getCartItems().clear();
             cart.setTotalPrice(0.0);
         }
     }
@@ -306,7 +305,7 @@ public class CheckoutService {
     private String createRazorpayOrder(Order order) {
         try {
             JSONObject req = new JSONObject();
-            req.put("amount", order.getTotal());                // paise
+            req.put("amount", order.getTotal());
             req.put("currency", currency);
             req.put("receipt", "FX-" + order.getOrderId());
             req.put("notes", new JSONObject().put("orderId", order.getOrderId()));
@@ -333,11 +332,11 @@ public class CheckoutService {
 
     private Cart loadCart(String email) {
         Cart cart = cartRepository.findCartByEmail(email);
-        if (cart == null) throw new ResourceNotFoundException("Cart", "email", email);
+        if (cart == null)
+            throw new ResourceNotFoundException("Cart", "email", email);
         return cart;
     }
 
-   
     private PriceBreakdown calculate(List<CartItem> items, String couponCode) {
         long subtotal = 0, mrpTotal = 0;
         for (CartItem ci : items) {
@@ -359,5 +358,11 @@ public class CheckoutService {
                 coupon.message(),
                 shipping,
                 afterDiscount + shipping);
+    }
+
+    private String getOrderNumber() {
+        String year = String.valueOf(Year.now().getValue());
+        String randomPart = UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase();
+        return "FGX-" + year + randomPart;
     }
 }

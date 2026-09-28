@@ -19,6 +19,9 @@ public class Order {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
+    
+    @Column(name = "order_name",nullable = false,unique = true,updatable = false)
+    private String orderNumber;
 
     @Column(nullable = false)
     private String email;
@@ -34,7 +37,7 @@ public class Order {
     @JoinColumn(name = "payment_id")
     private Payment payment;
 
-    // Money — all in paise
+    
     private Long subtotal;
     private Long discount;
     private Long shipping;

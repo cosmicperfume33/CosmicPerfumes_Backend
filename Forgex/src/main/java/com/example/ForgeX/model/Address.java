@@ -50,12 +50,18 @@ public class Address {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Address(String street, String buildingName, String city, String state, String country, String pincode) {
+    @NotBlank
+    @Size(min = 10, max = 15, message = "Phone number must be between 10 and 15 characters")
+    private String phoneNumber;
+
+    public Address(String street, String buildingName, String city, String state, String country, String pincode,String phoneNumber) {
         this.street = street;
         this.buildingName = buildingName;
         this.city = city;
         this.state = state;
         this.country = country;
         this.pincode = pincode;
+        this.phoneNumber=phoneNumber;
+
     }
 }

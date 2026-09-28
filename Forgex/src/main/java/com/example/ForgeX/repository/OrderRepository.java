@@ -23,4 +23,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByStatusAndCreatedAtBefore(OrderStatus status, LocalDateTime before);
 
     List<Order> findByEmailOrderByCreatedAtDesc(String email);
+
+    
 }

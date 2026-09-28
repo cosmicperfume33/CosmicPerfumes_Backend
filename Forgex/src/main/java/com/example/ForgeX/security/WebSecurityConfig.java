@@ -1,6 +1,5 @@
 package com.example.ForgeX.security;
 
-
 import com.example.ForgeX.model.AppRole;
 import com.example.ForgeX.model.Role;
 import com.example.ForgeX.model.User;
@@ -36,12 +35,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
 
-
 import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
+// @EnableMethodSecurity
 public class WebSecurityConfig {
     @Autowired
     UserDetailsServiceImpl userDetailsService;
@@ -53,7 +51,6 @@ public class WebSecurityConfig {
     public AuthTokenFilter authenticationJwtTokenFilter() {
         return new AuthTokenFilter();
     }
-    
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
@@ -61,7 +58,6 @@ public class WebSecurityConfig {
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
-
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
@@ -73,25 +69,21 @@ public class WebSecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/api/auth/**").permitAll()
-                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()  // ← ADD
-                                .requestMatchers("/v3/api-docs/**").permitAll()
-                                .requestMatchers("/h2-console/**").permitAll()
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/public/**").permitAll()
-                                .requestMatchers("/swagger-ui/**").permitAll()
-                                .requestMatchers("/api/test/**").permitAll()
-                                .requestMatchers("/images/**").permitAll()
-                                .anyRequest().authenticated()
-                );
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ← ADD
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/images/**").permitAll()
+                        .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
 
@@ -101,9 +93,6 @@ public class WebSecurityConfig {
 
         return http.build();
     }
-
-
-
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -115,24 +104,26 @@ public class WebSecurityConfig {
                 "/webjars/**"));
     }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",
+                "https://forge-x-backend-cyan.vercel.app")); // no slash at the end
+        config.setAllowedOriginPatterns(List.of("https://*.vercel.app")); // your Vite dev port
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // cache preflight for 1 hour
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 
     @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:5173")); // your Vite dev port
-    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-    config.setAllowedHeaders(List.of("*"));
-    config.setAllowCredentials(true);
-    config.setMaxAge(3600L); // cache preflight for 1 hour
-
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-}
-
-
-    @Bean
-    public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository,
+            PasswordEncoder passwordEncoder) {
         return args -> {
             // Retrieve or create roles
             Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
@@ -141,7 +132,6 @@ public CorsConfigurationSource corsConfigurationSource() {
                         return roleRepository.save(newUserRole);
                     });
 
-
             Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
                     .orElseGet(() -> {
                         Role newAdminRole = new Role(AppRole.ROLE_ADMIN);
@@ -149,17 +139,14 @@ public CorsConfigurationSource corsConfigurationSource() {
                     });
 
             Set<Role> userRoles = Set.of(userRole);
-           
-            Set<Role> adminRoles = Set.of(userRole,adminRole);
 
+            Set<Role> adminRoles = Set.of(userRole, adminRole);
 
             // Create users if not already present
             if (!userRepository.existsByUserName("user1")) {
                 User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));
                 userRepository.save(user1);
             }
-
-          
 
             if (!userRepository.existsByUserName("admin")) {
                 User admin = new User("admin", "admin@example.com", passwordEncoder.encode("adminPass"));
@@ -171,7 +158,6 @@ public CorsConfigurationSource corsConfigurationSource() {
                 user.setRoles(userRoles);
                 userRepository.save(user);
             });
-
 
             userRepository.findByUserName("admin").ifPresent(admin -> {
                 admin.setRoles(adminRoles);
