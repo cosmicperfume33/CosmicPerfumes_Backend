@@ -56,8 +56,6 @@ public class FileServiceImpl implements FileService {
                 ));
             }
         } catch (RuntimeException | IOException e) {
-            // One bad file must not leave the earlier ones stranded on Cloudinary,
-            // where nothing in the database would ever point at them again.
             for (UploadedImage orphan : uploaded) {
                 deleteImage(orphan.publicId());
             }
@@ -75,7 +73,7 @@ public class FileServiceImpl implements FileService {
         try {
             cloudinary.uploader().destroy(publicId, ObjectUtils.asMap("invalidate", true));
         } catch (Exception e) {
-            // A storage failure must never stop the database change the admin asked for.
+            
             log.warn("Could not delete {} from Cloudinary; it is now orphaned", publicId, e);
         }
     }

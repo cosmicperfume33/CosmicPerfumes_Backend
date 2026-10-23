@@ -22,7 +22,7 @@ public class InvoiceController {
     @Autowired
     private AuthUtil authUtil;
 
-    // Customer invoice
+  
     @GetMapping("/orders/{orderId}/invoice")
     public ResponseEntity<byte[]> myInvoice(
             @PathVariable Long orderId) {
@@ -36,7 +36,7 @@ public class InvoiceController {
                 "ForgeX-invoice-" + orderId + ".pdf");
     }
 
-    // Admin can generate invoice for any order
+    
     @GetMapping("/admin/orders/{orderId}/invoice")
     public ResponseEntity<byte[]> adminInvoice(
             @PathVariable Long orderId) {

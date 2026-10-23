@@ -7,11 +7,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface FileService {
 
-    /**
-     * Uploads every file and returns one result per file, in the order given.
-     * If any file fails, the ones already uploaded are removed again, so a
-     * half-finished batch never leaves orphans on Cloudinary.
-     */
+   
     List<UploadedImage> uploadImages(String path, List<MultipartFile> files) throws IOException;
 
     /** Removes a file from Cloudinary. Safe to call with an unknown id. */
