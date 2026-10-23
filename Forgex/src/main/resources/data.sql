@@ -1,0 +1,22 @@
+INSERT INTO users (username, email, password)
+VALUES
+('siddharth01', 'siddharth01@example.com', 'Siddharth@123'),
+('siddharth02', 'siddharth02@example.com', 'Siddharth@123'),
+('siddharth03', 'siddharth03@example.com', 'Siddharth@123'),
+('siddharth04', 'siddharth04@example.com', 'Siddharth@123'),
+('siddharth05', 'siddharth05@example.com', 'Siddharth@123'),
+('siddharth06', 'siddharth06@example.com', 'Siddharth@123'),
+('siddharth07', 'siddharth07@example.com', 'Siddharth@123'),
+('siddharth08', 'siddharth08@example.com', 'Siddharth@123'),
+('siddharth09', 'siddharth09@example.com', 'Siddharth@123'),
+('siddharth10', 'siddharth10@example.com', 'Siddharth@123'),
+('siddharth11', 'siddharth11@example.com', 'Siddharth@123'),
+('siddharth12', 'siddharth12@example.com', 'Siddharth@123'),
+('siddharth13', 'siddharth13@example.com', 'Siddharth@123'),
+('siddharth14', 'siddharth14@example.com', 'Siddharth@123'),
+('siddharth15', 'siddharth15@example.com', 'Siddharth@123'),
+('siddharth16', 'siddharth16@example.com', 'Siddharth@123'),
+('siddharth17', 'siddharth17@example.com', 'Siddharth@123'),
+('siddharth18', 'siddharth18@example.com', 'Siddharth@123'),
+('siddharth19', 'siddharth19@example.com', 'Siddharth@123'),
+('siddharth20', 'siddharth20@example.com', 'Siddharth@123');

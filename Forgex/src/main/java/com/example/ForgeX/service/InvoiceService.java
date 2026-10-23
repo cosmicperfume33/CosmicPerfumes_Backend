@@ -120,12 +120,6 @@ public class InvoiceService {
         return String.format("FX/%s/%06d", fy, order.getOrderId());
     }
 
-    // ---------- money ----------
-
-    /**
-     * Splits an inclusive-of-tax amount into net and tax.
-     * net = gross × 100 / (100 + rate)
-     */
     private Line line(String description, long unitGross, int qty) {
         long lineGross = unitGross * qty;
         long net;
@@ -198,7 +192,7 @@ public class InvoiceService {
         Paragraph buyer = new Paragraph();
         buyer.setAlignment(Element.ALIGN_RIGHT);
         buyer.add(new Phrase("Billing / Shipping Address :\n", BOLD));
-        buyer.add(new Phrase(addressBlock(ship, order.getEmail()), NORMAL));
+        buyer.add(new Phrase(addressBlock(ship, order.getAddress().getPhoneNumber()), NORMAL));
         if (ship != null) {
             buyer.add(new Phrase("\nState/UT Code: ", BOLD));
             buyer.add(new Phrase(StateCode.of(ship.getState()) + "\n", NORMAL));
@@ -218,7 +212,7 @@ public class InvoiceService {
 
         Paragraph left = new Paragraph();
         left.add(new Phrase("Order Number: ", BOLD));
-        left.add(new Phrase("FX-" + order.getOrderId() + "\n", NORMAL));
+        left.add(new Phrase(order.getOrderNumber() + "\n", NORMAL));
         left.add(new Phrase("Order Date: ", BOLD));
         left.add(new Phrase(order.getCreatedAt().format(DATE), NORMAL));
         t.addCell(left(left));

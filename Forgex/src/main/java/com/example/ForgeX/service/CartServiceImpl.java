@@ -59,12 +59,8 @@ public class CartServiceImpl implements CartService {
 
    
     @Override
-    public CartDTO getCart(String emailId, Long cartId) {
-        Cart cart = cartRepository.findCartByEmail(emailId);
-        if (cart == null) {
-            cart = getOrCreateCart(authUtil.loggedInUser());
-        }
-        return toDTO(cart);
+    public CartDTO getCart() {
+      return toDTO(getOrCreateCart(authUtil.loggedInUser()));
     }
 
     @Override

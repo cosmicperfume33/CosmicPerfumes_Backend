@@ -1,5 +1,8 @@
 package com.example.ForgeX.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,8 +39,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private FragranceFamily fragranceFamily;
 
-    private Long mrp;      // original price, in paise
-    private Long price;    // selling price, in paise
+    private Long mrp; // original price, in paise
+    private Long price; // selling price, in paise
 
     private Integer stock;
     private String image;
@@ -47,8 +50,34 @@ public class Product {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC, imageId ASC")
+    private List<ProductImage> images = new ArrayList<>();
+
+    public List<ProductImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ProductImage> images) {
+        this.images.clear();
+        if (images != null) {
+            images.forEach(this::addImage);
+        }
+    }
+
     public Integer getDiscount() {
-        if (mrp == null || price == null || mrp == 0) return 0;
+        if (mrp == null || price == null || mrp == 0)
+            return 0;
         return (int) ((mrp - price) * 100 / mrp);
+    }
+
+    public void addImage(ProductImage productImage) {
+        images.add(productImage);
+        productImage.setProduct(this);
+    }
+
+    public void removeImage(ProductImage productImage) {
+        images.remove(productImage);
+        productImage.setProduct(null);
     }
 }

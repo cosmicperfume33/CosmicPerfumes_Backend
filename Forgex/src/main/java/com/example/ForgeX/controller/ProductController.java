@@ -1,6 +1,7 @@
 package com.example.ForgeX.controller;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -74,7 +75,7 @@ public class ProductController {
         return new ResponseEntity<>(products, HttpStatus.FOUND);
     }
 
-    @DeleteMapping("/public/products/{productId}")
+    @DeleteMapping("/admin/products/{productId}")
     public ResponseEntity<String> deleteProduct(@PathVariable Long productId){
         String deletedProduct=productService.deleteProduct(productId);
         return  new ResponseEntity<>(deletedProduct,HttpStatus.OK);
@@ -86,13 +87,33 @@ public class ProductController {
         return  new ResponseEntity<>(updateProduct,HttpStatus.OK);
     }
    
-     @PutMapping("/admin/products/{productId}/image")
-    public ResponseEntity<ProductDTO> updateProductImage(@PathVariable("productId") Long productId,
-                                                         @RequestParam("image") MultipartFile image) throws IOException {
+  
+    
+@PutMapping("/admin/products/{productId}/image")
+    public ResponseEntity<ProductDTO> updateProductImage(
+            @PathVariable("productId") Long productId,
+            @RequestParam("image") List<MultipartFile> image) throws IOException {
         ProductDTO updatedProduct = productService.updateProductImage(productId, image);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
+    /** Removes one image from the gallery and from Cloudinary. */
+    @DeleteMapping("/admin/products/{productId}/images/{imageId}")
+    public ResponseEntity<ProductDTO> deleteProductImage(
+            @PathVariable("productId") Long productId,
+            @PathVariable("imageId") Long imageId) {
+        ProductDTO updatedProduct = productService.deleteProductImage(productId, imageId);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
+
+    /** Makes one image the product's thumbnail. */
+    @PutMapping("/admin/products/{productId}/images/{imageId}/primary")
+    public ResponseEntity<ProductDTO> setPrimaryProductImage(
+            @PathVariable("productId") Long productId,
+            @PathVariable("imageId") Long imageId) {
+        ProductDTO updatedProduct = productService.setPrimaryProductImage(productId, imageId);
+        return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
+    }
 
 
 }

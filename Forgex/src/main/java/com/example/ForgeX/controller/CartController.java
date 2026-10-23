@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -48,17 +49,9 @@ public class CartController {
 
     @GetMapping("/carts/users/cart")
     public ResponseEntity<CartDTO> getCartById() {
-        String emailId = authUtil.loggedInEmail();
-        return ResponseEntity.ok(cartService.getCart(emailId, null));
+        return ResponseEntity.ok(cartService.getCart());
     }
-    // @GetMapping("/carts/users/cart")
-    // public ResponseEntity<CartDTO> getCartById(){
-    // String emailId=authUtil.loggedInEmail();
-    // Cart cart=cartRepository.findCartByEmail(emailId);
-    // Long cartId=cart.getCartId();
-    // CartDTO cartDTO=cartService.getCart(emailId,cartId);
-    // return new ResponseEntity<>(cartDTO,HttpStatus.OK);
-    // }
+
 
     @PutMapping("/cart/products/{productId}/quantity/{operation}")
     public ResponseEntity<CartDTO> updateCartProduct(@PathVariable("productId") Long productId,

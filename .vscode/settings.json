@@ -1,3 +1,17 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.debug.settings.onBuildFailureProceed": true,
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "Forgex",
+            "database": "Forgex",
+            "username": "postgres",
+            "password": "Sidd@2004"
+        }
+    ]
 }

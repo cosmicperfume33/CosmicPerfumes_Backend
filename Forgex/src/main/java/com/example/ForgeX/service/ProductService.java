@@ -1,6 +1,7 @@
 package com.example.ForgeX.service;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,5 +25,11 @@ public interface ProductService {
     public String deleteProduct(Long productId);
     public ProductDTO updateProduct(Long id,ProductDTO productDTO);
 
-    public ProductDTO updateProductImage(Long productId, MultipartFile image) throws IOException;
+//     public ProductDTO updateProductImage(Long productId,List< MultipartFile> image) throws IOException;
+
+    ProductDTO updateProductImage(Long productId, List<MultipartFile> files) throws IOException;
+
+    ProductDTO deleteProductImage(Long productId, Long imageId);
+
+    ProductDTO setPrimaryProductImage(Long productId, Long imageId);
 }

@@ -16,25 +16,21 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-//import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsPasswordService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-
-import org.springframework.http.HttpMethod;
-import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.List;
 
+import java.util.List;
 import java.util.Set;
 
 @Configuration
@@ -72,13 +68,16 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
+                .cors(Customizer.withDefaults()) 
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // ← ADD
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/health").permitAll()
+                        .requestMatchers("/api/addresses").hasAnyRole("ADMIN","USER")
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
@@ -109,8 +108,9 @@ public class WebSecurityConfig {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173",
-                "https://forge-x-backend-cyan.vercel.app")); // no slash at the end
-        config.setAllowedOriginPatterns(List.of("https://*.vercel.app")); // your Vite dev port
+                "https://www.cosmiclife.in",   // FIX 2: no trailing slash
+                "https://cosmiclife.in"));     // non-www version too
+        config.setAllowedOriginPatterns(List.of("https://*.vercel.app"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
@@ -142,27 +142,8 @@ public class WebSecurityConfig {
 
             Set<Role> adminRoles = Set.of(userRole, adminRole);
 
-            // Create users if not already present
-            if (!userRepository.existsByUserName("user1")) {
-                User user1 = new User("user1", "user1@example.com", passwordEncoder.encode("password1"));
-                userRepository.save(user1);
-            }
-
-            if (!userRepository.existsByUserName("admin")) {
-                User admin = new User("admin", "admin@example.com", passwordEncoder.encode("adminPass"));
-                userRepository.save(admin);
-            }
-
-            // Update roles for existing users
-            userRepository.findByUserName("user1").ifPresent(user -> {
-                user.setRoles(userRoles);
-                userRepository.save(user);
-            });
-
-            userRepository.findByUserName("admin").ifPresent(admin -> {
-                admin.setRoles(adminRoles);
-                userRepository.save(admin);
-            });
+           
+          
         };
     }
 
