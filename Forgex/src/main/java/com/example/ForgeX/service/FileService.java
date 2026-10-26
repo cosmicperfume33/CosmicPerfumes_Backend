@@ -10,7 +10,7 @@ public interface FileService {
    
     List<UploadedImage> uploadImages(String path, List<MultipartFile> files) throws IOException;
 
-    /** Removes a file from Cloudinary. Safe to call with an unknown id. */
+   
     void deleteImage(String publicId);
 
     /** What Cloudinary gives back for one upload. publicId is needed to delete it later. */

@@ -3,6 +3,8 @@ package com.example.ForgeX.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.ForgeX.service.FileService.UploadedImage;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,8 +41,8 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private FragranceFamily fragranceFamily;
 
-    private Long mrp; // original price, in paise
-    private Long price; // selling price, in paise
+    private Long mrp; 
+    private Long price;
 
     private Integer stock;
     private String image;

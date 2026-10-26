@@ -133,26 +133,7 @@ public class ProductServiceImpl implements ProductService {
         return modelMapper.map(savedProduct, ProductDTO.class);
     }
 
-    // @Override
-    // @Transactional
-    // public ProductDTO updateProductImage(Long productId, List<MultipartFile> images) throws IOException {
-    //     Product productFromDB = findProduct(productId);
-
-    //      List<String> imageUrls =
-    //         fileService.uploadImages(path, images);
-          
-    //         for(int i=0;i<imageUrls.size();i++){
-    //             ProductImage productImage=new ProductImage();
-    //              productImage.setImageUrl(imageUrls.get(i));
-    //              productImage.setSortOrder(i);
-
-    //              productFromDB.addImage(productImage);
-    //         }
-    //     productFromDB.setImage(imageUrls.get(0));
-
-    //     Product savedProduct = productRepository.save(productFromDB);
-    //     return modelMapper.map(savedProduct, ProductDTO.class);
-    // }
+   
 
     @Override
     @Transactional
