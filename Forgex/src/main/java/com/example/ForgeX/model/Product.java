@@ -41,6 +41,11 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private FragranceFamily fragranceFamily;
 
+    @Enumerated(EnumType.STRING)
+    private Material material;
+
+    private Integer quantity; 
+
     private Long mrp; 
     private Long price;
 

@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PriceBreakdown {
-    private Long subtotal;         // paise
-    private Long mrpTotal;         // paise, for "You save ₹X"
-    private Long productSavings;   // mrpTotal − subtotal
+    private Long subtotal;        
+    private Long mrpTotal;        
+    private Long productSavings;  
     private Long couponDiscount;
-    private String couponCode;     // null if none / invalid
-    private String couponMessage;  // why a coupon was rejected, or "Applied"
+    private String couponCode;     
+    private String couponMessage;  
     private Long shipping;
     private Long total;
 }

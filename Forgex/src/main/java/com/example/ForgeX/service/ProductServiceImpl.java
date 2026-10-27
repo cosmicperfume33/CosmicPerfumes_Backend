@@ -40,6 +40,8 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private FileService fileService;
 
+    private static final int MAX_IMAGES = 8;
+
     @Value("${project.image}")
     private String path;
 
@@ -47,6 +49,12 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductDTO addProduct(ProductDTO productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
+        if (productDTO.getCategory().equals("HANDICRAFT")) {
+            product.setMaterial(productDTO.getMaterial());
+          //  productDTO.setFragranceFamily(null);
+        }
+        product.setQuantity(productDTO.getQuantity());
+
         product.setProductId(null);
         if (product.getActive() == null)
             product.setActive(true);
@@ -133,8 +141,6 @@ public class ProductServiceImpl implements ProductService {
         return modelMapper.map(savedProduct, ProductDTO.class);
     }
 
-   
-
     @Override
     @Transactional
     public String deleteProduct(Long productId) {
@@ -170,126 +176,110 @@ public class ProductServiceImpl implements ProductService {
                 page.isLast());
     }
 
-private static final int MAX_IMAGES = 8;
+    @Override
+    @Transactional
+    public ProductDTO updateProductImage(
+            Long productId,
+            List<MultipartFile> files) throws IOException {
 
-@Override
-@Transactional
-public ProductDTO updateProductImage(
-        Long productId,
-        List<MultipartFile> files
-) throws IOException {
+        Product product = findProduct(productId);
 
-    Product product = findProduct(productId);
+        if (files == null || files.isEmpty()) {
+            throw new APIException("Choose at least one image to upload.");
+        }
 
-    if (files == null || files.isEmpty()) {
-        throw new APIException("Choose at least one image to upload.");
+        List<ProductImage> current = product.getImages();
+
+        if (current.size() + files.size() > MAX_IMAGES) {
+            throw new APIException(
+                    "A product can have at most " + MAX_IMAGES
+                            + " images; this one already has " + current.size() + ".");
+        }
+
+        List<UploadedImage> uploaded = fileService.uploadImages(path, files);
+
+        int next = current.stream()
+                .mapToInt(ProductImage::getSortOrder)
+                .max()
+                .orElse(-1) + 1;
+
+        for (UploadedImage image : uploaded) {
+            product.addImage(
+                    new ProductImage(image.url(), image.publicId(), next++));
+        }
+
+        if (product.getImage() == null || product.getImage().isBlank()) {
+            product.setImage(uploaded.get(0).url());
+        }
+
+        return modelMapper.map(
+                productRepository.save(product),
+                ProductDTO.class);
     }
 
-    List<ProductImage> current = product.getImages();
+    @Override
+    @Transactional
+    public ProductDTO deleteProductImage(Long productId, Long imageId) {
+        Product product = findProduct(productId);
 
-    if (current.size() + files.size() > MAX_IMAGES) {
-        throw new APIException(
-                "A product can have at most " + MAX_IMAGES
-                        + " images; this one already has " + current.size() + "."
-        );
+        ProductImage image = product.getImages().stream()
+                .filter(i -> i.getImageId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "ProductImage", "imageId", imageId));
+
+        boolean wasPrimary = image.getImageUrl().equals(product.getImage());
+        String publicId = image.getPublicId();
+
+        product.removeImage(image);
+
+        List<ProductImage> remaining = resequence(product);
+
+        if (wasPrimary) {
+            product.setImage(
+                    remaining.isEmpty() ? null : remaining.get(0).getImageUrl());
+        }
+
+        Product saved = productRepository.save(product);
+
+        fileService.deleteImage(publicId);
+
+        return modelMapper.map(saved, ProductDTO.class);
     }
 
-    List<UploadedImage> uploaded = fileService.uploadImages(path, files);
+    @Override
+    @Transactional
+    public ProductDTO setPrimaryProductImage(Long productId, Long imageId) {
+        Product product = findProduct(productId);
 
-    int next = current.stream()
-            .mapToInt(ProductImage::getSortOrder)
-            .max()
-            .orElse(-1) + 1;
+        ProductImage image = product.getImages().stream()
+                .filter(i -> i.getImageId().equals(imageId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "ProductImage", "imageId", imageId));
 
-    for (UploadedImage image : uploaded) {
-        product.addImage(
-                new ProductImage(image.url(), image.publicId(), next++)
-        );
+        image.setSortOrder(-1);
+        resequence(product);
+        product.setImage(image.getImageUrl());
+
+        return modelMapper.map(
+                productRepository.save(product),
+                ProductDTO.class);
     }
 
-    if (product.getImage() == null || product.getImage().isBlank()) {
-        product.setImage(uploaded.get(0).url());
+    private List<ProductImage> resequence(Product product) {
+        List<ProductImage> ordered = product.getImages();
+
+        ordered.sort(
+                Comparator.comparingInt(ProductImage::getSortOrder)
+                        .thenComparing(
+                                ProductImage::getImageId,
+                                Comparator.nullsLast(Comparator.naturalOrder())));
+
+        for (int i = 0; i < ordered.size(); i++) {
+            ordered.get(i).setSortOrder(i);
+        }
+
+        return ordered;
     }
-
-    return modelMapper.map(
-            productRepository.save(product),
-            ProductDTO.class
-    );
-}
-
-@Override
-@Transactional
-public ProductDTO deleteProductImage(Long productId, Long imageId) {
-    Product product = findProduct(productId);
-
-    ProductImage image = product.getImages().stream()
-            .filter(i -> i.getImageId().equals(imageId))
-            .findFirst()
-            .orElseThrow(() ->
-                    new ResourceNotFoundException(
-                            "ProductImage", "imageId", imageId
-                    )
-            );
-
-    boolean wasPrimary = image.getImageUrl().equals(product.getImage());
-    String publicId = image.getPublicId();
-
-    product.removeImage(image);
-
-    List<ProductImage> remaining = resequence(product);
-
-    if (wasPrimary) {
-        product.setImage(
-                remaining.isEmpty() ? null : remaining.get(0).getImageUrl()
-        );
-    }
-
-    Product saved = productRepository.save(product);
-
-    fileService.deleteImage(publicId);
-
-    return modelMapper.map(saved, ProductDTO.class);
-}
-
-@Override
-@Transactional
-public ProductDTO setPrimaryProductImage(Long productId, Long imageId) {
-    Product product = findProduct(productId);
-
-    ProductImage image = product.getImages().stream()
-            .filter(i -> i.getImageId().equals(imageId))
-            .findFirst()
-            .orElseThrow(() ->
-                    new ResourceNotFoundException(
-                            "ProductImage", "imageId", imageId
-                    )
-            );
-
-    image.setSortOrder(-1);
-    resequence(product);
-    product.setImage(image.getImageUrl());
-
-    return modelMapper.map(
-            productRepository.save(product),
-            ProductDTO.class
-    );
-}
-
-private List<ProductImage> resequence(Product product) {
-    List<ProductImage> ordered = product.getImages();
-
-    ordered.sort(
-            Comparator.comparingInt(ProductImage::getSortOrder)
-                    .thenComparing(
-                            ProductImage::getImageId,
-                            Comparator.nullsLast(Comparator.naturalOrder())
-                    )
-    );
-
-    for (int i = 0; i < ordered.size(); i++) {
-        ordered.get(i).setSortOrder(i);
-    }
-
-    return ordered;
-}
 }

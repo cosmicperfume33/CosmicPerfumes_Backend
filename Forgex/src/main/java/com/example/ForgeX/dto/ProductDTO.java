@@ -6,6 +6,7 @@ import java.util.List;
 import com.example.ForgeX.model.Category;
 import com.example.ForgeX.model.FragranceFamily;
 import com.example.ForgeX.model.Gender;
+import com.example.ForgeX.model.Material;
 import com.example.ForgeX.model.ProductImage;
 
 import lombok.AllArgsConstructor;
@@ -25,12 +26,13 @@ public class ProductDTO {
     private Category category;
     private Gender gender;
     private FragranceFamily fragranceFamily;
+    private Material material;
 
-    private Integer quantity; // only filled in cart responses; null everywhere else
+    private Integer quantity; 
 
-    private Long mrp; // original price, in paise
-    private Long price; // selling price, in paise
-    private Integer discount; // calculated, never sent by client
+    private Long mrp; 
+    private Long price;
+    private Integer discount; 
 
     private Integer stock;
     private String image;

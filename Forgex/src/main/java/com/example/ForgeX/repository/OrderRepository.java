@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.example.ForgeX.model.Address;
 import com.example.ForgeX.model.Order;
 import com.example.ForgeX.model.OrderStatus;
 
@@ -24,5 +25,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findByEmailOrderByCreatedAtDesc(String email);
 
-    
+    List<Order> findByAddress_AddressId(Long addressId);
+
+    List<Order> findByAddress(Address address);
+
 }
