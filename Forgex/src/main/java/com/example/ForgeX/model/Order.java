@@ -54,6 +54,11 @@ public class Order {
     @Column(unique = true)
     private String razorpayOrderId;
 
+     @Enumerated(EnumType.STRING)
+    private Market market = Market.IN;
+
+    private String currency = "INR";
+
     private LocalDateTime createdAt;
     private LocalDateTime paidAt;
 
@@ -65,5 +70,12 @@ public class Order {
     public void addItem(OrderItem item) {
         item.setOrder(this);
         orderItems.add(item);
+    }
+    public Market marketOrDefault(){
+        return market== null? Market.IN:market;
+    }
+
+    public String currencyOrDefault(){
+        return currency==null || currency.isBlank()?"INR":currency;
     }
 }

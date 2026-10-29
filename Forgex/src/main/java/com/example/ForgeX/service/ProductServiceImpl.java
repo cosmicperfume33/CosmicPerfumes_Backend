@@ -49,11 +49,17 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public ProductDTO addProduct(ProductDTO productDTO) {
         Product product = modelMapper.map(productDTO, Product.class);
-        if (productDTO.getCategory().equals("HANDICRAFT")) {
+        product.setProductId(null);
+        if (productDTO.getCategory()==Category.HANDICRAFT) {
             product.setMaterial(productDTO.getMaterial());
+            product.setGender(null);
+            product.setFragranceFamily(null);
           //  productDTO.setFragranceFamily(null);
         }
-        product.setQuantity(productDTO.getQuantity());
+        else{
+            product.setMaterial(null);
+        }
+        //product.setQuantity(productDTO.getQuantity());
 
         product.setProductId(null);
         if (product.getActive() == null)
@@ -131,7 +137,18 @@ public class ProductServiceImpl implements ProductService {
         productFromDB.setFragranceFamily(productDTO.getFragranceFamily());
         productFromDB.setMrp(productDTO.getMrp());
         productFromDB.setPrice(productDTO.getPrice());
+        productFromDB.setPriceUsd(productDTO.getPriceUsd());
+        productFromDB.setMrpUsd(productDTO.getMrpUsd());
         productFromDB.setStock(productDTO.getStock());
+
+        if(productDTO.getCategory()==Category.HANDICRAFT){
+            productFromDB.setMaterial(productDTO.getMaterial());
+            productFromDB.setGender(null);
+            productFromDB.setFragranceFamily(null);
+        }
+        else{
+            productFromDB.setMaterial(null);
+        }
 
         if (productDTO.getActive() != null) {
             productFromDB.setActive(productDTO.getActive());

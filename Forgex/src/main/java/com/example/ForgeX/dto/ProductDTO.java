@@ -34,6 +34,10 @@ public class ProductDTO {
     private Long price;
     private Integer discount; 
 
+    private Long mrpUsd; // original price, in cents
+    private Long priceUsd; // selling price, in cents
+    private Integer discountUsd; // calculated, never sent by client
+
     private Integer stock;
     private String image;
     private List<ProductImageDTO> images = new ArrayList<>();

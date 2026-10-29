@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.ForgeX.model.Market;
 import com.example.ForgeX.model.OrderStatus;
 import com.example.ForgeX.model.PaymentMethod;
 import com.example.ForgeX.model.PaymentStatus;
@@ -30,6 +31,9 @@ public class OrderDTO {
     private Long shipping;     
     private Long total;         
     private String couponCode;
+
+    private  Market market; //IN or INTL
+    private String currency;  // "INR" or "USD" - the unit of every amount above
 
     private Long addressId;
     private LocalDateTime createdAt;

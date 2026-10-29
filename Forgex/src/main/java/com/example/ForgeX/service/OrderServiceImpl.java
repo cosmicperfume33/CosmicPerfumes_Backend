@@ -89,6 +89,8 @@ public class OrderServiceImpl implements OrderService {
         dto.setTotal(order.getTotal());
         dto.setOrderNumber(order.getOrderNumber());
         dto.setCouponCode(order.getCouponCode());
+        dto.setMarket(order.marketOrDefault());
+        dto.setCurrency(order.currencyOrDefault());
         dto.setAddressId(order.getAddress() != null ? order.getAddress().getAddressId() : null);
         dto.setCreatedAt(order.getCreatedAt());
         dto.setPaidAt(order.getPaidAt());

@@ -2,7 +2,6 @@ package com.example.ForgeX.model;
 
 import java.util.Map;
 
-/** GST state codes, used to decide CGST+SGST versus IGST. */
 public final class StateCode {
 
     private static final Map<String, String> CODES = Map.ofEntries(

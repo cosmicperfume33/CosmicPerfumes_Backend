@@ -2,7 +2,6 @@ package com.example.ForgeX.security;
 
 import com.example.ForgeX.model.AppRole;
 import com.example.ForgeX.model.Role;
-import com.example.ForgeX.model.User;
 import com.example.ForgeX.repository.RoleRepository;
 import com.example.ForgeX.repository.UserRepository;
 import com.example.ForgeX.security.jwt.AuthEntryPointJwt;
@@ -10,6 +9,7 @@ import com.example.ForgeX.security.jwt.AuthTokenFilter;
 import com.example.ForgeX.security.services.UserDetailsServiceImpl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,13 +30,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
-// @EnableMethodSecurity
 public class WebSecurityConfig {
+
     @Autowired
     UserDetailsServiceImpl userDetailsService;
 
@@ -50,13 +51,15 @@ public class WebSecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider authProvider =
+                new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
@@ -68,16 +71,19 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .cors(Customizer.withDefaults()) 
-                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**").permitAll()
+                .cors(Customizer.withDefaults())
+                .exceptionHandling(exception ->
+                        exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/health").permitAll()
-                        .requestMatchers("/api/addresses").hasAnyRole("ADMIN","USER")
+                        .requestMatchers("/api/addresses").hasAnyRole("ADMIN", "USER")
                         .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/api/test/**").permitAll()
@@ -86,46 +92,61 @@ public class WebSecurityConfig {
 
         http.authenticationProvider(authenticationProvider());
 
-        http.addFilterBefore(authenticationJwtTokenFilter(), UsernamePasswordAuthenticationFilter.class);
-        http.headers(headers -> headers.frameOptions(
-                frameOptions -> frameOptions.sameOrigin()));
+        http.addFilterBefore(
+                authenticationJwtTokenFilter(),
+                UsernamePasswordAuthenticationFilter.class);
+
+        http.headers(headers ->
+                headers.frameOptions(frameOptions -> frameOptions.sameOrigin()));
 
         return http.build();
     }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
-        return (web -> web.ignoring().requestMatchers("/v2/api-docs",
+        return web -> web.ignoring().requestMatchers(
+                "/v2/api-docs",
                 "/configuration/ui",
                 "/swagger-resources/**",
                 "/configuration/security",
                 "/swagger-ui.html",
-                "/webjars/**"));
+                "/webjars/**");
     }
+
+    @Value("${shop.cors.origins}")
+    private String[] corsOrigins;
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "https://www.cosmiclife.in",   // FIX 2: no trailing slash
-                "https://cosmiclife.in"));     // non-www version too
+
+        config.setAllowedOrigins(Arrays.stream(corsOrigins)
+                .map(String::trim)
+                .filter(o -> !o.isEmpty())
+                .toList());
+
         config.setAllowedOriginPatterns(List.of("https://*.vercel.app"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        config.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // cache preflight for 1 hour
+        config.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
 
     @Bean
-    public CommandLineRunner initData(RoleRepository roleRepository, UserRepository userRepository,
+    public CommandLineRunner initData(
+            RoleRepository roleRepository,
+            UserRepository userRepository,
             PasswordEncoder passwordEncoder) {
+
         return args -> {
-            // Retrieve or create roles
             Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
                     .orElseGet(() -> {
                         Role newUserRole = new Role(AppRole.ROLE_USER);
@@ -139,12 +160,7 @@ public class WebSecurityConfig {
                     });
 
             Set<Role> userRoles = Set.of(userRole);
-
             Set<Role> adminRoles = Set.of(userRole, adminRole);
-
-           
-          
         };
     }
-
 }

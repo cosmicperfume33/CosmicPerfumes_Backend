@@ -1,5 +1,6 @@
 package com.example.ForgeX.dto;
 
+import com.example.ForgeX.model.Market;
 import com.example.ForgeX.model.PaymentMethod;
 
 import jakarta.validation.constraints.NotNull;
@@ -14,4 +15,5 @@ public class CheckoutRequest {
     private PaymentMethod paymentMethod;   // RAZORPAY or COD
 
     private String couponCode;             // optional
+     private Market market;
 }

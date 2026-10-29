@@ -9,6 +9,7 @@ import com.example.ForgeX.dto.CheckoutRequest;
 import com.example.ForgeX.dto.CheckoutResponse;
 import com.example.ForgeX.dto.PaymentVerifyRequest;
 import com.example.ForgeX.dto.PriceBreakdown;
+import com.example.ForgeX.model.Market;
 import com.example.ForgeX.service.CheckoutService;
 import com.example.ForgeX.util.AuthUtil;
 
@@ -22,8 +23,8 @@ public class CheckoutController {
     @Autowired private AuthUtil authUtil;
 
     @GetMapping("/checkout/preview")
-    public ResponseEntity<PriceBreakdown> preview(@RequestParam(required = false) String coupon) {
-        return ResponseEntity.ok(checkoutService.preview(authUtil.loggedInUser(), coupon));
+    public ResponseEntity<PriceBreakdown> preview(@RequestParam(required = false) String coupon, @RequestParam(required=false) Market market) {
+        return ResponseEntity.ok(checkoutService.preview(authUtil.loggedInUser(), coupon,market));
     }
 
     @PostMapping("/checkout")

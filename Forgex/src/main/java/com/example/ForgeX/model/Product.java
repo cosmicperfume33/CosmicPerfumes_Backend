@@ -3,6 +3,8 @@ package com.example.ForgeX.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.example.ForgeX.service.FileService.UploadedImage;
 
 import jakarta.persistence.*;
@@ -44,10 +46,13 @@ public class Product {
     @Enumerated(EnumType.STRING)
     private Material material;
 
-    private Integer quantity; 
+    // private Integer quantity;
 
-    private Long mrp; 
+    private Long mrp;
     private Long price;
+
+    private Long mrpUsd;
+    private Long priceUsd;
 
     private Integer stock;
     private String image;
@@ -59,6 +64,7 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC, imageId ASC")
+    @BatchSize(size = 100)
     private List<ProductImage> images = new ArrayList<>();
 
     public List<ProductImage> getImages() {
@@ -76,6 +82,12 @@ public class Product {
         if (mrp == null || price == null || mrp == 0)
             return 0;
         return (int) ((mrp - price) * 100 / mrp);
+    }
+
+    public Integer getDiscountUsd() {
+        if (mrpUsd == null || priceUsd == null || mrpUsd == 0)
+            return 0;
+        return (int) ((mrpUsd - priceUsd) * 100 / mrpUsd);
     }
 
     public void addImage(ProductImage productImage) {
