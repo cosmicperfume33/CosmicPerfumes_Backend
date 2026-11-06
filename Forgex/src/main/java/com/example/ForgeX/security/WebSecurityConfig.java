@@ -81,6 +81,7 @@ public class WebSecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+                        //.requestMatchers("/api/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/health").permitAll()
                         .requestMatchers("/api/addresses").hasAnyRole("ADMIN", "USER")

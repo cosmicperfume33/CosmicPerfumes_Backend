@@ -9,7 +9,7 @@ import com.example.ForgeX.dto.ProductDTO;
 import com.example.ForgeX.dto.ProductResponse;
 
 public interface ProductService {
-    ProductDTO addProduct(ProductDTO product);
+    ProductDTO addProduct(Long categoryId,ProductDTO product);
 
     ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder);
 

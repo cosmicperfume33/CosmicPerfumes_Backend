@@ -34,19 +34,15 @@ public class Product {
     @Column(length = 2000)
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    private Category category;
+    
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Enumerated(EnumType.STRING)
-    private FragranceFamily fragranceFamily;
+    
+    private String fragranceFamily;
+    private String material;
 
-    @Enumerated(EnumType.STRING)
-    private Material material;
-
-    // private Integer quantity;
 
     private Long mrp;
     private Long price;
@@ -61,6 +57,10 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sortOrder ASC, imageId ASC")

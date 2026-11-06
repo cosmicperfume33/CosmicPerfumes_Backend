@@ -1,6 +1,7 @@
 package com.example.ForgeX.repository;
 
 import java.util.Locale.Category;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,4 +31,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Modifying
     @Query("UPDATE Product p SET p.stock = p.stock + :qty WHERE p.productId = :id")
     int incrementStock(@Param("id") Long productId, @Param("qty") int qty);
+
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsBySlugIgnoreCase(String slug);
+
+    boolean existsByNameIgnoreCaseAndProductIdNot(String name, Long productId);
+
+    boolean existsBySlugIgnoreCaseAndProductIdNot(String slug, Long productId);
+
+    Page<Product> findByCategory(Category category, Pageable pageable);
+
+    Optional<Category> findBySlugIgnoreCase(String slug);
 }
