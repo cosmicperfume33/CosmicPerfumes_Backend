@@ -20,10 +20,12 @@ import com.example.ForgeX.dto.ProductResponse;
 import com.example.ForgeX.exceptions.APIException;
 import com.example.ForgeX.exceptions.ResourceNotFoundException;
 import com.example.ForgeX.model.Category;
+import com.example.ForgeX.model.ProductType;
 import com.example.ForgeX.model.Gender;
 import com.example.ForgeX.model.Product;
 import com.example.ForgeX.model.ProductImage;
 import com.example.ForgeX.repository.CategoryRepository;
+import com.example.ForgeX.repository.ProductTypeRepository;
 import com.example.ForgeX.repository.ProductRepository;
 import com.example.ForgeX.service.FileService.UploadedImage;
 
@@ -36,6 +38,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private ProductTypeRepository productTypeRepository;
 
     @Autowired
     private ModelMapper modelMapper;
@@ -67,6 +72,7 @@ public class ProductServiceImpl implements ProductService {
         product.setSlug(slug);
         product.setCategory(category);
         applyCategoryFields(product, productDTO, category);
+        product.setProductType(resolveProductType(productDTO.getProductTypeId(), category));
 
         if (product.getActive() == null)
             product.setActive(true);
@@ -113,6 +119,7 @@ public class ProductServiceImpl implements ProductService {
             productFromDB.setActive(productDTO.getActive());
 
         applyCategoryFields(productFromDB, productDTO, category);
+        productFromDB.setProductType(resolveProductType(productDTO.getProductTypeId(), category));
         ensurePrimaryImage(productFromDB);
 
         return toDTO(productRepository.save(productFromDB));
@@ -252,6 +259,22 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
     }
 
+    private ProductType resolveProductType(Long productTypeId, Category category) {
+        if (productTypeId == null) {
+            return null;
+        }
+        ProductType type = productTypeRepository.findById(productTypeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "ProductType", "productTypeId", productTypeId));
+
+        Long owner = type.getCategory() == null ? null : type.getCategory().getCategoryId();
+        if (owner == null || !owner.equals(category.getCategoryId())) {
+            throw new APIException("'" + type.getTypeName() + "' does not belong to "
+                    + category.getCategoryName() + ".");
+        }
+        return type;
+    }
+
     private Category requireCategory(Long categoryId) {
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", categoryId));
@@ -317,9 +340,17 @@ public class ProductServiceImpl implements ProductService {
         if (category != null) {
             dto.setCategoryId(category.getCategoryId());
             dto.setCategoryName(category.getCategoryName());
-            dto.setCategorySlug(slugify(category.getCategoryName()));
+            dto.setCategorySlug(category.getSlug() != null && !category.getSlug().isBlank()
+                    ? category.getSlug()
+                    : slugify(category.getCategoryName()));
             dto.setCategory(legacyCode(category));
         }
+
+        ProductType type = product.getProductType();
+        dto.setProductTypeId(type == null ? null : type.getProductTypeId());
+        dto.setProductTypeName(type == null ? null : type.getTypeName());
+        dto.setProductTypeSlug(type == null ? null : type.getSlug());
+
         return dto;
     }
 

@@ -1,5 +1,8 @@
 package com.example.ForgeX.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,6 +19,8 @@ public class ProductTypeDTO {
 
     @NotBlank(message = "Type name is required")
     @Size(max = 100, message = "Type name must be 100 characters or fewer")
+    @JsonProperty("productTypeName")
+    @JsonAlias({ "typeName", "name" })
     private String typeName;
 
     @NotBlank(message = "Slug is required")
@@ -32,4 +37,6 @@ public class ProductTypeDTO {
     private String categorySlug;
 
     private Boolean active;
+
+    private Long productCount;
 }

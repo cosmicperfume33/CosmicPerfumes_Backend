@@ -43,4 +43,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Page<Product> findByCategory(Category category, Pageable pageable);
 
     Optional<Category> findBySlugIgnoreCase(String slug);
+
+    boolean existsByCategory_CategoryId(Long categoryId);
 }

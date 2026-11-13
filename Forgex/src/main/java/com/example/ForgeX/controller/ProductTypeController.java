@@ -25,7 +25,7 @@ public class ProductTypeController {
     @Autowired
     private ProductTypeService productTypeService;
 
-    @PostMapping("/public/categories/{categoryId}/product-Type")
+    @PostMapping("/admin/categories/{categoryId}/product-Type")
     public ResponseEntity<ProductTypeDTO> createProductType(@RequestBody ProductTypeDTO request,
             @PathVariable Long categoryId) {
         ProductTypeDTO response = productTypeService.createProductType(request, categoryId);
